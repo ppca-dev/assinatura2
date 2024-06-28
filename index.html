@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desenhar na Tela</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 2px solid #000;
+            cursor: crosshair;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas" width="500" height="300"></canvas>
+    <br>
+    <button onclick="limparCanvas()">Limpar Desenho</button>
+    <button onclick="desfazer()">Desfazer</button>
+    <button onclick="refazer()">Refazer</button>
+    <button onclick="salvarImagem()">Salvar Imagem</button>
+
+    <script>
+        var canvas = document.getElementById('myCanvas');
+        var context = canvas.getContext('2d');
+        var desenhos = [];
+        var index = -1;
+        var desenhando = false;
+
+        // Event listeners para desenhar no canvas
+        canvas.addEventListener('mousedown', function(e) {
+            salvarEstado();
+            desenhando = true;
+            context.beginPath();
+            context.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (desenhando) {
+                context.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+                context.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function() {
+            desenhando = false;
+        });
+
+        canvas.addEventListener('mouseout', function() {
+            desenhando = false;
+        });
+
+        // Função para limpar o canvas
+        function limparCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            desenhos = [];
+            index = -1;
+        }
+
+        // Função para salvar o estado atual do canvas
+        function salvarEstado() {
+            index++;
+            if (index < desenhos.length) {
+                desenhos.length = index;
+            }
+            desenhos.push(context.getImageData(0, 0, canvas.width, canvas.height));
+        }
+
+        // Função para desfazer a última ação de desenho
+        function desfazer() {
+            if (index > 0) {
+                index--;
+                context.putImageData(desenhos[index], 0, 0);
+            } else if (index === 0) {
+                index--;
+                context.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        // Função para refazer a última ação desfeita
+        function refazer() {
+            if (index < desenhos.length - 1) {
+                index++;
+                context.putImageData(desenhos[index], 0, 0);
+            }
+        }
+
+        // Função para salvar o desenho como imagem
+        function salvarImagem() {
+            var link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png'); // Converte o conteúdo do canvas em URL de dados PNG
+            link.download = 'meu_desenho.png'; // Nome do arquivo a ser baixado
+            link.click();
+        }
+    </script>
+</body>
+</html>
